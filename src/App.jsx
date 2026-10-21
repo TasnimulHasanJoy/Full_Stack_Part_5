@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import Blog from './components/Blog'
+import BlogForm from './components/BlogForm'
 import blogService from './services/blogs'
 
 const Notification = ({ notification }) => {
@@ -29,9 +30,6 @@ const App = () => {
 
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const [newTitle, setNewTitle] = useState('')
-  const [newAuthor, setNewAuthor] = useState('')
-  const [newUrl, setNewUrl] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [notification, setNotification] = useState(null)
 
@@ -89,41 +87,26 @@ const App = () => {
     setNotification(null)
   }
 
-  const handleCreateBlog = async event => {
-    event.preventDefault()
-
-    const newBlog = {
-      title: newTitle,
-      author: newAuthor,
-      url: newUrl
-    }
-
+  const handleCreateBlog = async newBlog => {
     try {
       const createdBlog = await blogService.create(newBlog, user.token)
 
       setBlogs(blogs.concat(createdBlog))
-      setNewTitle('')
-      setNewAuthor('')
-      setNewUrl('')
       setShowForm(false)
-
       setNotification({
         message: `${createdBlog.title} by ${createdBlog.author} added`,
         type: 'success'
       })
+
+      return true
     } catch (error) {
       setNotification({
         message: 'Could not create blog',
         type: 'error'
       })
-    }
-  }
 
-  const handleCancel = () => {
-    setShowForm(false)
-    setNewTitle('')
-    setNewAuthor('')
-    setNewUrl('')
+      return false
+    }
   }
 
   if (user === null) {
@@ -169,42 +152,13 @@ const App = () => {
         <button onClick={handleLogout}>logout</button>
       </p>
 
-      {showForm === false ? (
-        <button onClick={() => setShowForm(true)}>create new blog</button>
+      {showForm ? (
+        <BlogForm
+          createBlog={handleCreateBlog}
+          onCancel={() => setShowForm(false)}
+        />
       ) : (
-        <form onSubmit={handleCreateBlog}>
-          <h2>create new</h2>
-
-          <div>
-            title:
-            <input
-              type="text"
-              value={newTitle}
-              onChange={event => setNewTitle(event.target.value)}
-            />
-          </div>
-
-          <div>
-            author:
-            <input
-              type="text"
-              value={newAuthor}
-              onChange={event => setNewAuthor(event.target.value)}
-            />
-          </div>
-
-          <div>
-            url:
-            <input
-              type="text"
-              value={newUrl}
-              onChange={event => setNewUrl(event.target.value)}
-            />
-          </div>
-
-          <button type="submit">create</button>
-          <button type="button" onClick={handleCancel}>cancel</button>
-        </form>
+        <button onClick={() => setShowForm(true)}>create new blog</button>
       )}
 
       {blogs.map(blog => (
