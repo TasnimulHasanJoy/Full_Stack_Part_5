@@ -13,7 +13,19 @@ const login = async credentials => {
   return response.data
 }
 
+const create = async (newBlog, token) => {
+  const config = {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  }
+
+  const response = await axios.post(baseUrl, newBlog, config)
+  return response.data
+}
+
 export default {
   getAll,
-  login
+  login,
+  create
 }

@@ -7,12 +7,15 @@ const App = () => {
 
   const [user, setUser] = useState(() => {
     const savedUser = window.localStorage.getItem('loggedBlogappUser')
-
     return savedUser ? JSON.parse(savedUser) : null
   })
 
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
+
+  const [newTitle, setNewTitle] = useState('')
+  const [newAuthor, setNewAuthor] = useState('')
+  const [newUrl, setNewUrl] = useState('')
 
   useEffect(() => {
     if (user) {
@@ -48,6 +51,26 @@ const App = () => {
     window.localStorage.removeItem('loggedBlogappUser')
     setUser(null)
     setBlogs([])
+  }
+
+  const handleCreateBlog = async event => {
+    event.preventDefault()
+
+    const newBlog = {
+      title: newTitle,
+      author: newAuthor,
+      url: newUrl
+    }
+
+    try {
+      const createdBlog = await blogService.create(newBlog, user.token)
+      setBlogs(blogs.concat(createdBlog))
+      setNewTitle('')
+      setNewAuthor('')
+      setNewUrl('')
+    } catch (error) {
+      window.alert('Could not create the blog')
+    }
   }
 
   if (user === null) {
@@ -88,6 +111,39 @@ const App = () => {
         {user.name} logged in{' '}
         <button onClick={handleLogout}>logout</button>
       </p>
+
+      <h2>create new</h2>
+
+      <form onSubmit={handleCreateBlog}>
+        <div>
+          title:
+          <input
+            type="text"
+            value={newTitle}
+            onChange={event => setNewTitle(event.target.value)}
+          />
+        </div>
+
+        <div>
+          author:
+          <input
+            type="text"
+            value={newAuthor}
+            onChange={event => setNewAuthor(event.target.value)}
+          />
+        </div>
+
+        <div>
+          url:
+          <input
+            type="text"
+            value={newUrl}
+            onChange={event => setNewUrl(event.target.value)}
+          />
+        </div>
+
+        <button type="submit">create</button>
+      </form>
 
       {blogs.map(blog => (
         <Blog key={blog.id} blog={blog} />
