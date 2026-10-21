@@ -166,6 +166,10 @@ const App = () => {
     )
   }
 
+  const sortedBlogs = [...blogs].sort((first, second) => {
+    return second.likes - first.likes
+  })
+
   return (
     <div>
       <Notification notification={notification} />
@@ -186,7 +190,7 @@ const App = () => {
         <button onClick={() => setShowForm(true)}>create new blog</button>
       )}
 
-      {blogs.map(blog => (
+      {sortedBlogs.map(blog => (
         <Blog key={blog.id} blog={blog} onLike={handleLike} />
       ))}
     </div>
