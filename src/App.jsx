@@ -109,6 +109,31 @@ const App = () => {
     }
   }
 
+  const handleLike = async blog => {
+    const blogWithOneMoreLike = {
+      ...blog,
+      likes: blog.likes + 1
+    }
+
+    try {
+      const updatedBlog = await blogService.update(
+        blogWithOneMoreLike,
+        user.token
+      )
+
+      setBlogs(blogs.map(currentBlog =>
+        currentBlog.id === updatedBlog.id
+          ? { ...updatedBlog, user: currentBlog.user }
+          : currentBlog
+      ))
+    } catch (error) {
+      setNotification({
+        message: 'Could not like the blog',
+        type: 'error'
+      })
+    }
+  }
+
   if (user === null) {
     return (
       <div>
@@ -162,7 +187,7 @@ const App = () => {
       )}
 
       {blogs.map(blog => (
-        <Blog key={blog.id} blog={blog} />
+        <Blog key={blog.id} blog={blog} onLike={handleLike} />
       ))}
     </div>
   )
