@@ -2,6 +2,23 @@ import { useEffect, useState } from 'react'
 import Blog from './components/Blog'
 import blogService from './services/blogs'
 
+const Notification = ({ notification }) => {
+  if (notification === null) {
+    return null
+  }
+
+  const style = {
+    color: notification.type === 'error' ? 'red' : 'green',
+    backgroundColor: '#ddd',
+    border: `3px solid ${notification.type === 'error' ? 'red' : 'green'}`,
+    borderRadius: '5px',
+    padding: '10px',
+    marginBottom: '10px'
+  }
+
+  return <div style={style}>{notification.message}</div>
+}
+
 const App = () => {
   const [blogs, setBlogs] = useState([])
 
@@ -12,10 +29,10 @@ const App = () => {
 
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-
   const [newTitle, setNewTitle] = useState('')
   const [newAuthor, setNewAuthor] = useState('')
   const [newUrl, setNewUrl] = useState('')
+  const [notification, setNotification] = useState(null)
 
   useEffect(() => {
     if (user) {
@@ -24,6 +41,18 @@ const App = () => {
       })
     }
   }, [user])
+
+  useEffect(() => {
+    if (notification === null) {
+      return
+    }
+
+    const timer = window.setTimeout(() => {
+      setNotification(null)
+    }, 5000)
+
+    return () => window.clearTimeout(timer)
+  }, [notification])
 
   const handleLogin = async event => {
     event.preventDefault()
@@ -42,8 +71,12 @@ const App = () => {
       setUser(loggedInUser)
       setUsername('')
       setPassword('')
+      setNotification(null)
     } catch (error) {
-      window.alert('Wrong username or password')
+      setNotification({
+        message: 'Wrong username or password',
+        type: 'error'
+      })
     }
   }
 
@@ -51,6 +84,7 @@ const App = () => {
     window.localStorage.removeItem('loggedBlogappUser')
     setUser(null)
     setBlogs([])
+    setNotification(null)
   }
 
   const handleCreateBlog = async event => {
@@ -64,18 +98,29 @@ const App = () => {
 
     try {
       const createdBlog = await blogService.create(newBlog, user.token)
+
       setBlogs(blogs.concat(createdBlog))
       setNewTitle('')
       setNewAuthor('')
       setNewUrl('')
+
+      setNotification({
+        message: `${createdBlog.title} by ${createdBlog.author} added`,
+        type: 'success'
+      })
     } catch (error) {
-      window.alert('Could not create the blog')
+      setNotification({
+        message: 'Could not create blog',
+        type: 'error'
+      })
     }
   }
 
   if (user === null) {
     return (
       <div>
+        <Notification notification={notification} />
+
         <h2>Log in to application</h2>
 
         <form onSubmit={handleLogin}>
@@ -105,6 +150,8 @@ const App = () => {
 
   return (
     <div>
+      <Notification notification={notification} />
+
       <h2>blogs</h2>
 
       <p>
