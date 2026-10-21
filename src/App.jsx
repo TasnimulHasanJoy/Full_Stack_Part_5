@@ -91,7 +91,7 @@ const App = () => {
     try {
       const createdBlog = await blogService.create(newBlog, user.token)
 
-      setBlogs(blogs.concat(createdBlog))
+      setBlogs(currentBlogs => currentBlogs.concat(createdBlog))
       setShowForm(false)
       setNotification({
         message: `${createdBlog.title} by ${createdBlog.author} added`,
@@ -121,14 +121,44 @@ const App = () => {
         user.token
       )
 
-      setBlogs(blogs.map(currentBlog =>
-        currentBlog.id === updatedBlog.id
-          ? { ...updatedBlog, user: currentBlog.user }
-          : currentBlog
-      ))
+      setBlogs(currentBlogs =>
+        currentBlogs.map(currentBlog =>
+          currentBlog.id === updatedBlog.id
+            ? { ...updatedBlog, user: currentBlog.user }
+            : currentBlog
+        )
+      )
     } catch (error) {
       setNotification({
         message: 'Could not like the blog',
+        type: 'error'
+      })
+    }
+  }
+
+  const handleDelete = async blog => {
+    const confirmed = window.confirm(
+      `Remove blog ${blog.title} by ${blog.author}?`
+    )
+
+    if (!confirmed) {
+      return
+    }
+
+    try {
+      await blogService.remove(blog.id, user.token)
+
+      setBlogs(currentBlogs =>
+        currentBlogs.filter(currentBlog => currentBlog.id !== blog.id)
+      )
+
+      setNotification({
+        message: `${blog.title} by ${blog.author} removed`,
+        type: 'success'
+      })
+    } catch (error) {
+      setNotification({
+        message: 'Could not remove blog',
         type: 'error'
       })
     }
@@ -166,9 +196,9 @@ const App = () => {
     )
   }
 
-  const sortedBlogs = [...blogs].sort((first, second) => {
-    return second.likes - first.likes
-  })
+  const sortedBlogs = [...blogs].sort(
+    (first, second) => second.likes - first.likes
+  )
 
   return (
     <div>
@@ -191,7 +221,13 @@ const App = () => {
       )}
 
       {sortedBlogs.map(blog => (
-        <Blog key={blog.id} blog={blog} onLike={handleLike} />
+        <Blog
+          key={blog.id}
+          blog={blog}
+          onLike={handleLike}
+          onDelete={handleDelete}
+          canDelete={blog.user?.username === user.username}
+        />
       ))}
     </div>
   )
