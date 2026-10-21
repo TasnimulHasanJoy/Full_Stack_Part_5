@@ -32,6 +32,7 @@ const App = () => {
   const [newTitle, setNewTitle] = useState('')
   const [newAuthor, setNewAuthor] = useState('')
   const [newUrl, setNewUrl] = useState('')
+  const [showForm, setShowForm] = useState(false)
   const [notification, setNotification] = useState(null)
 
   useEffect(() => {
@@ -84,6 +85,7 @@ const App = () => {
     window.localStorage.removeItem('loggedBlogappUser')
     setUser(null)
     setBlogs([])
+    setShowForm(false)
     setNotification(null)
   }
 
@@ -103,6 +105,7 @@ const App = () => {
       setNewTitle('')
       setNewAuthor('')
       setNewUrl('')
+      setShowForm(false)
 
       setNotification({
         message: `${createdBlog.title} by ${createdBlog.author} added`,
@@ -114,6 +117,13 @@ const App = () => {
         type: 'error'
       })
     }
+  }
+
+  const handleCancel = () => {
+    setShowForm(false)
+    setNewTitle('')
+    setNewAuthor('')
+    setNewUrl('')
   }
 
   if (user === null) {
@@ -159,38 +169,43 @@ const App = () => {
         <button onClick={handleLogout}>logout</button>
       </p>
 
-      <h2>create new</h2>
+      {showForm === false ? (
+        <button onClick={() => setShowForm(true)}>create new blog</button>
+      ) : (
+        <form onSubmit={handleCreateBlog}>
+          <h2>create new</h2>
 
-      <form onSubmit={handleCreateBlog}>
-        <div>
-          title:
-          <input
-            type="text"
-            value={newTitle}
-            onChange={event => setNewTitle(event.target.value)}
-          />
-        </div>
+          <div>
+            title:
+            <input
+              type="text"
+              value={newTitle}
+              onChange={event => setNewTitle(event.target.value)}
+            />
+          </div>
 
-        <div>
-          author:
-          <input
-            type="text"
-            value={newAuthor}
-            onChange={event => setNewAuthor(event.target.value)}
-          />
-        </div>
+          <div>
+            author:
+            <input
+              type="text"
+              value={newAuthor}
+              onChange={event => setNewAuthor(event.target.value)}
+            />
+          </div>
 
-        <div>
-          url:
-          <input
-            type="text"
-            value={newUrl}
-            onChange={event => setNewUrl(event.target.value)}
-          />
-        </div>
+          <div>
+            url:
+            <input
+              type="text"
+              value={newUrl}
+              onChange={event => setNewUrl(event.target.value)}
+            />
+          </div>
 
-        <button type="submit">create</button>
-      </form>
+          <button type="submit">create</button>
+          <button type="button" onClick={handleCancel}>cancel</button>
+        </form>
+      )}
 
       {blogs.map(blog => (
         <Blog key={blog.id} blog={blog} />
