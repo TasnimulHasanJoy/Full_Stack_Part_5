@@ -1,52 +1,11 @@
-import { useState } from 'react'
+import { Link } from 'react-router-dom'
 
-const Blog = ({ blog, onLike, onDelete, canLike, canDelete }) => {
-  const [showDetails, setShowDetails] = useState(false)
-
-  const blogStyle = {
-    paddingTop: 10,
-    paddingLeft: 2,
-    border: 'solid',
-    borderWidth: 1,
-    marginBottom: 5
-  }
-
-  return (
-    <div className="blog" style={blogStyle}>
-      <div>
-        {blog.title} {blog.author}
-        <button
-          type="button"
-          onClick={() => setShowDetails(!showDetails)}
-        >
-          {showDetails ? 'hide' : 'show'}
-        </button>
-      </div>
-
-      {showDetails && (
-        <div>
-          <div>{blog.url}</div>
-
-          <div>
-            likes {blog.likes}{' '}
-            {canLike && (
-              <button type="button" onClick={() => onLike(blog)}>
-                like
-              </button>
-            )}
-          </div>
-
-          <div>{blog.user?.name}</div>
-
-          {canDelete && (
-            <button type="button" onClick={() => onDelete(blog)}>
-              remove
-            </button>
-          )}
-        </div>
-      )}
-    </div>
-  )
-}
+const Blog = ({ blog }) => (
+  <li className="blog">
+    <Link to={`/blogs/${blog.id}`}>
+      {blog.title} by {blog.author}
+    </Link>
+  </li>
+)
 
 export default Blog

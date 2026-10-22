@@ -8,6 +8,7 @@ import {
 } from 'react-router-dom'
 import Blog from './components/Blog'
 import BlogForm from './components/BlogForm'
+import BlogView from './components/BlogView'
 import blogService from './services/blogs'
 
 const Notification = ({ notification }) => {
@@ -64,6 +65,7 @@ const LoginForm = ({
 const App = () => {
   const navigate = useNavigate()
   const [blogs, setBlogs] = useState([])
+  const [blogsLoaded, setBlogsLoaded] = useState(false)
 
   const [user, setUser] = useState(() => {
     const savedUser = window.localStorage.getItem('loggedBlogappUser')
@@ -79,12 +81,14 @@ const App = () => {
     blogService.getAll()
       .then(blogsFromServer => {
         setBlogs(blogsFromServer)
+        setBlogsLoaded(true)
       })
       .catch(() => {
         setNotification({
           message: 'Could not load blogs',
           type: 'error'
         })
+        setBlogsLoaded(true)
       })
   }, [])
 
@@ -208,6 +212,8 @@ const App = () => {
         message: `${blog.title} by ${blog.author} removed`,
         type: 'success'
       })
+
+      navigate('/')
     } catch {
       setNotification({
         message: 'Could not remove blog',
@@ -230,7 +236,6 @@ const App = () => {
           <Link to="/login">login</Link>
         ) : (
           <>
-            <span>{user.name} logged in </span>
             <button type="button" onClick={handleLogout}>logout</button>
           </>
         )}
@@ -261,16 +266,11 @@ const App = () => {
                 )
               )}
 
-              {sortedBlogs.map(blog => (
-                <Blog
-                  key={blog.id}
-                  blog={blog}
-                  onLike={handleLike}
-                  onDelete={handleDelete}
-                  canLike={user !== null}
-                  canDelete={blog.user?.username === user?.username}
-                />
-              ))}
+              <ul>
+                {sortedBlogs.map(blog => (
+                  <Blog key={blog.id} blog={blog} />
+                ))}
+              </ul>
             </div>
           }
         />
@@ -289,6 +289,19 @@ const App = () => {
                 setPassword={setPassword}
               />
             )
+          }
+        />
+
+        <Route
+          path="/blogs/:id"
+          element={
+            <BlogView
+              blogs={blogs}
+              blogsLoaded={blogsLoaded}
+              user={user}
+              onLike={handleLike}
+              onDelete={handleDelete}
+            />
           }
         />
 
