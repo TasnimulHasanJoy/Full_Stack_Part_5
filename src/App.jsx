@@ -10,6 +10,7 @@ import Blog from './components/Blog'
 import BlogForm from './components/BlogForm'
 import BlogView from './components/BlogView'
 import blogService from './services/blogs'
+import './App.css'
 
 const Notification = ({ notification }) => {
   if (notification === null) {
@@ -35,31 +36,33 @@ const LoginForm = ({
   password,
   setPassword
 }) => (
-  <div>
+  <section className="form-container login-container">
     <h2>Log in to application</h2>
 
-    <form onSubmit={handleLogin}>
-      <div>
-        username
-        <input
-          type="text"
-          value={username}
-          onChange={event => setUsername(event.target.value)}
-        />
-      </div>
+    <form className="styled-form login-form" onSubmit={handleLogin}>
+      <input
+        className="styled-input login-input"
+        type="text"
+        placeholder="username"
+        aria-label="username"
+        value={username}
+        onChange={event => setUsername(event.target.value)}
+      />
 
-      <div>
-        password
-        <input
-          type="password"
-          value={password}
-          onChange={event => setPassword(event.target.value)}
-        />
-      </div>
+      <input
+        className="styled-input login-input"
+        type="password"
+        placeholder="password"
+        aria-label="password"
+        value={password}
+        onChange={event => setPassword(event.target.value)}
+      />
 
-      <button type="submit">login</button>
+      <button className="styled-button" type="submit">
+        login
+      </button>
     </form>
-  </div>
+  </section>
 )
 
 const App = () => {
@@ -141,7 +144,15 @@ const App = () => {
     try {
       const createdBlog = await blogService.create(newBlog, user.token)
 
-      setBlogs(currentBlogs => currentBlogs.concat(createdBlog))
+      const blogWithCreator = {
+        ...createdBlog,
+        user: {
+          username: user.username,
+          name: user.name
+        }
+      }
+
+      setBlogs(currentBlogs => currentBlogs.concat(blogWithCreator))
       setNotification({
         message: `${createdBlog.title} by ${createdBlog.author} added`,
         type: 'success'
@@ -164,25 +175,30 @@ const App = () => {
       return
     }
 
-    const blogWithOneMoreLike = {
+    const updatedBlog = {
       ...blog,
       likes: blog.likes + 1
     }
 
-    try {
-      const updatedBlog = await blogService.update(
-        blogWithOneMoreLike,
-        user.token
+    setBlogs(currentBlogs =>
+      currentBlogs.map(currentBlog =>
+        currentBlog.id === blog.id
+          ? { ...currentBlog, likes: updatedBlog.likes }
+          : currentBlog
       )
+    )
 
+    try {
+      await blogService.update(updatedBlog, user.token)
+    } catch {
       setBlogs(currentBlogs =>
         currentBlogs.map(currentBlog =>
-          currentBlog.id === updatedBlog.id
-            ? { ...updatedBlog, user: currentBlog.user }
+          currentBlog.id === blog.id
+            ? { ...currentBlog, likes: blog.likes }
             : currentBlog
         )
       )
-    } catch {
+
       setNotification({
         message: 'Could not like the blog',
         type: 'error'
@@ -225,8 +241,8 @@ const App = () => {
   )
 
   return (
-    <div>
-      <nav>
+    <div className="app">
+      <nav className="navigation">
         <Link to="/">blogs</Link>
         {' '}
 
@@ -267,13 +283,13 @@ const App = () => {
             user === null ? (
               <Navigate to="/login" replace />
             ) : (
-              <div>
+              <section className="form-container create-container">
                 <h2>create new</h2>
                 <BlogForm
                   createBlog={handleCreateBlog}
                   onCancel={() => navigate('/')}
                 />
-              </div>
+              </section>
             )
           }
         />
