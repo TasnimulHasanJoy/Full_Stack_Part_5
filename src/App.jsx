@@ -1,4 +1,11 @@
 import { useEffect, useState } from 'react'
+import {
+  Link,
+  Navigate,
+  Route,
+  Routes,
+  useNavigate
+} from 'react-router-dom'
 import Blog from './components/Blog'
 import BlogForm from './components/BlogForm'
 import blogService from './services/blogs'
@@ -20,7 +27,42 @@ const Notification = ({ notification }) => {
   return <div style={style}>{notification.message}</div>
 }
 
+const LoginForm = ({
+  handleLogin,
+  username,
+  setUsername,
+  password,
+  setPassword
+}) => (
+  <div>
+    <h2>Log in to application</h2>
+
+    <form onSubmit={handleLogin}>
+      <div>
+        username
+        <input
+          type="text"
+          value={username}
+          onChange={event => setUsername(event.target.value)}
+        />
+      </div>
+
+      <div>
+        password
+        <input
+          type="password"
+          value={password}
+          onChange={event => setPassword(event.target.value)}
+        />
+      </div>
+
+      <button type="submit">login</button>
+    </form>
+  </div>
+)
+
 const App = () => {
+  const navigate = useNavigate()
   const [blogs, setBlogs] = useState([])
 
   const [user, setUser] = useState(() => {
@@ -34,12 +76,17 @@ const App = () => {
   const [notification, setNotification] = useState(null)
 
   useEffect(() => {
-    if (user) {
-      blogService.getAll().then(blogsFromServer => {
+    blogService.getAll()
+      .then(blogsFromServer => {
         setBlogs(blogsFromServer)
       })
-    }
-  }, [user])
+      .catch(() => {
+        setNotification({
+          message: 'Could not load blogs',
+          type: 'error'
+        })
+      })
+  }, [])
 
   useEffect(() => {
     if (notification === null) {
@@ -71,6 +118,7 @@ const App = () => {
       setUsername('')
       setPassword('')
       setNotification(null)
+      navigate('/')
     } catch {
       setNotification({
         message: 'Wrong username or password',
@@ -82,9 +130,9 @@ const App = () => {
   const handleLogout = () => {
     window.localStorage.removeItem('loggedBlogappUser')
     setUser(null)
-    setBlogs([])
     setShowForm(false)
     setNotification(null)
+    navigate('/')
   }
 
   const handleCreateBlog = async newBlog => {
@@ -110,6 +158,10 @@ const App = () => {
   }
 
   const handleLike = async blog => {
+    if (user === null) {
+      return
+    }
+
     const blogWithOneMoreLike = {
       ...blog,
       likes: blog.likes + 1
@@ -164,71 +216,84 @@ const App = () => {
     }
   }
 
-  if (user === null) {
-    return (
-      <div>
-        <Notification notification={notification} />
-
-        <h2>Log in to application</h2>
-
-        <form onSubmit={handleLogin}>
-          <div>
-            username
-            <input
-              type="text"
-              value={username}
-              onChange={event => setUsername(event.target.value)}
-            />
-          </div>
-
-          <div>
-            password
-            <input
-              type="password"
-              value={password}
-              onChange={event => setPassword(event.target.value)}
-            />
-          </div>
-
-          <button type="submit">login</button>
-        </form>
-      </div>
-    )
-  }
-
   const sortedBlogs = [...blogs].sort(
     (first, second) => second.likes - first.likes
   )
 
   return (
     <div>
+      <nav>
+        <Link to="/">blogs</Link>
+        {' '}
+
+        {user === null ? (
+          <Link to="/login">login</Link>
+        ) : (
+          <>
+            <span>{user.name} logged in </span>
+            <button type="button" onClick={handleLogout}>logout</button>
+          </>
+        )}
+      </nav>
+
       <Notification notification={notification} />
 
-      <h2>blogs</h2>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <div>
+              <h2>blogs</h2>
 
-      <p>
-        {user.name} logged in{' '}
-        <button onClick={handleLogout}>logout</button>
-      </p>
+              {user !== null && (
+                showForm ? (
+                  <BlogForm
+                    createBlog={handleCreateBlog}
+                    onCancel={() => setShowForm(false)}
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setShowForm(true)}
+                  >
+                    create new blog
+                  </button>
+                )
+              )}
 
-      {showForm ? (
-        <BlogForm
-          createBlog={handleCreateBlog}
-          onCancel={() => setShowForm(false)}
+              {sortedBlogs.map(blog => (
+                <Blog
+                  key={blog.id}
+                  blog={blog}
+                  onLike={handleLike}
+                  onDelete={handleDelete}
+                  canLike={user !== null}
+                  canDelete={blog.user?.username === user?.username}
+                />
+              ))}
+            </div>
+          }
         />
-      ) : (
-        <button onClick={() => setShowForm(true)}>create new blog</button>
-      )}
 
-      {sortedBlogs.map(blog => (
-        <Blog
-          key={blog.id}
-          blog={blog}
-          onLike={handleLike}
-          onDelete={handleDelete}
-          canDelete={blog.user?.username === user.username}
+        <Route
+          path="/login"
+          element={
+            user !== null ? (
+              <Navigate to="/" replace />
+            ) : (
+              <LoginForm
+                handleLogin={handleLogin}
+                username={username}
+                setUsername={setUsername}
+                password={password}
+                setPassword={setPassword}
+              />
+            )
+          }
         />
-      ))}
+
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </div>
   )
 }
