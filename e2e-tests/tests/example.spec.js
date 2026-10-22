@@ -52,4 +52,35 @@ describe('Blog app', () => {
       ).toBeVisible()
     })
   })
+
+  describe('When logged in', () => {
+    beforeEach(async ({ page }) => {
+      await page.locator('input[type="text"]').fill(testUser.username)
+      await page.locator('input[type="password"]').fill(testUser.password)
+      await page.getByRole('button', { name: 'login' }).click()
+
+      await expect(
+        page.getByRole('button', { name: 'create new blog' })
+      ).toBeVisible()
+    })
+
+    test('a new blog can be created', async ({ page }) => {
+      const title = 'Playwright created blog'
+      const author = 'Playwright Test'
+      const url = 'https://example.com/playwright-blog'
+
+      await page.getByRole('button', { name: 'create new blog' }).click()
+
+      const inputs = page.locator('form input')
+      await inputs.nth(0).fill(title)
+      await inputs.nth(1).fill(author)
+      await inputs.nth(2).fill(url)
+
+      await page.getByRole('button', { name: 'create', exact: true }).click()
+
+      const createdBlog = page.locator('.blog').filter({ hasText: title })
+      await expect(createdBlog).toContainText(author)
+      await expect(createdBlog).toBeVisible()
+    })
+  })
 })
