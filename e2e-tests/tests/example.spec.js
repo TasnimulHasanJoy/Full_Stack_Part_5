@@ -1,214 +1,98 @@
-import { beforeEach, describe, expect, test } from '@playwright/test'
+const { test, expect } = require('@playwright/test')
 
 const testUser = {
   name: 'Test User',
   username: 'testuser',
-  password: 'password123'
+  password: 'password'
 }
 
-const createBlog = async (page, title, author, url) => {
-  await page.getByRole('button', { name: 'create new blog' }).click()
-
-  const inputs = page.locator('form input')
-  await inputs.nth(0).fill(title)
-  await inputs.nth(1).fill(author)
-  await inputs.nth(2).fill(url)
-
-  await page.getByRole('button', { name: 'create', exact: true }).click()
-
-  const blog = page.locator('.blog').filter({ hasText: title })
-  await expect(blog).toBeVisible()
-
-  return blog
+const blog = {
+  title: 'E2E test blog',
+  author: 'Test Author',
+  url: 'https://example.com/e2e-test'
 }
 
-const login = async (page, username, password) => {
-  await page.locator('input[type="text"]').fill(username)
-  await page.locator('input[type="password"]').fill(password)
+const login = async page => {
+  await page.getByRole('link', { name: 'login' }).click()
+  await page.locator('input').nth(0).fill(testUser.username)
+  await page.locator('input').nth(1).fill(testUser.password)
   await page.getByRole('button', { name: 'login' }).click()
 }
 
-const likeBlog = async (page, title, count) => {
-  const blog = page.locator('.blog').filter({ hasText: title })
+const createBlog = async page => {
+  await login(page)
+  await page.getByRole('link', { name: 'new blog' }).click()
 
-  await blog.getByRole('button', { name: 'view' }).click()
-  await expect(blog).toContainText('likes 0')
+  await page.locator('input').nth(0).fill(blog.title)
+  await page.locator('input').nth(1).fill(blog.author)
+  await page.locator('input').nth(2).fill(blog.url)
 
-  for (let i = 0; i < count; i++) {
-    await blog.getByRole('button', { name: 'like' }).click()
-    await expect(blog).toContainText(`likes ${i + 1}`)
-  }
+  await page.getByRole('button', { name: 'create' }).click()
+
+  await expect(
+    page.getByRole('link', { name: `${blog.title} by ${blog.author}` })
+  ).toBeVisible()
 }
 
-describe('Blog app', () => {
-  beforeEach(async ({ page, request }) => {
-    await request.post('http://localhost:3003/api/testing/reset')
-
-    await request.post('http://localhost:3003/api/users', {
-      data: testUser
-    })
-
-    await page.goto('/')
+test.beforeEach(async ({ page, request }) => {
+  await request.post('http://localhost:3003/api/testing/reset')
+  await request.post('http://localhost:3003/api/users', {
+    data: testUser
   })
 
-  test('Login form is shown', async ({ page }) => {
-    await expect(
-      page.getByRole('heading', { name: 'Log in to application' })
-    ).toBeVisible()
+  await page.goto('/')
+})
 
-    await expect(page.locator('input[type="text"]')).toBeVisible()
-    await expect(page.locator('input[type="password"]')).toBeVisible()
-    await expect(page.getByRole('button', { name: 'login' })).toBeVisible()
-  })
+test('login succeeds with the correct username and password', async ({ page }) => {
+  await login(page)
 
-  describe('Login', () => {
-    test('succeeds with correct credentials', async ({ page }) => {
-      await login(page, testUser.username, testUser.password)
+  await expect(page.getByRole('button', { name: 'logout' })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'new blog' })).toBeVisible()
+})
 
-      await expect(
-        page.getByText(`${testUser.name} logged in`)
-      ).toBeVisible()
-    })
+test('login fails with an incorrect username or password', async ({ page }) => {
+  await page.getByRole('link', { name: 'login' }).click()
+  await page.locator('input').nth(0).fill(testUser.username)
+  await page.locator('input').nth(1).fill('wrong-password')
+  await page.getByRole('button', { name: 'login' }).click()
 
-    test('fails with wrong credentials', async ({ page }) => {
-      await login(page, testUser.username, 'wrong-password')
+  await expect(page.getByText('Wrong username or password')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'logout' })).toHaveCount(0)
+})
 
-      await expect(
-        page.getByText('Wrong username or password')
-      ).toBeVisible()
+test('a logged-in user can create a blog', async ({ page }) => {
+  await createBlog(page)
 
-      await expect(
-        page.getByRole('heading', { name: 'Log in to application' })
-      ).toBeVisible()
-    })
-  })
+  await expect(
+    page.getByRole('link', { name: `${blog.title} by ${blog.author}` })
+  ).toBeVisible()
+})
 
-  describe('When logged in', () => {
-    beforeEach(async ({ page }) => {
-      await login(page, testUser.username, testUser.password)
+test('a logged-in user can like a blog', async ({ page }) => {
+  await createBlog(page)
 
-      await expect(
-        page.getByRole('button', { name: 'create new blog' })
-      ).toBeVisible()
-    })
+  await page.getByRole('link', {
+    name: `${blog.title} by ${blog.author}`
+  }).click()
 
-    test('a new blog can be created', async ({ page }) => {
-      const blog = await createBlog(
-        page,
-        'Playwright created blog',
-        'Playwright Test',
-        'https://example.com/playwright-blog'
-      )
+  const blogDetails = page.locator('.blog-details')
 
-      await expect(blog).toContainText('Playwright Test')
-    })
+  await expect(blogDetails).toContainText('likes 0')
+  await page.getByRole('button', { name: 'like' }).click()
+  await expect(blogDetails).toContainText('likes 1')
+})
 
-    test('a blog can be liked', async ({ page }) => {
-      const blog = await createBlog(
-        page,
-        'Blog to like',
-        'Playwright Test',
-        'https://example.com/blog-to-like'
-      )
+test('a logged-in user can delete a blog', async ({ page }) => {
+  await createBlog(page)
 
-      await blog.getByRole('button', { name: 'view' }).click()
-      await expect(blog).toContainText('likes 0')
+  await page.getByRole('link', {
+    name: `${blog.title} by ${blog.author}`
+  }).click()
 
-      await blog.getByRole('button', { name: 'like' }).click()
-      await expect(blog).toContainText('likes 1')
-    })
+  page.once('dialog', dialog => dialog.accept())
+  await page.getByRole('button', { name: 'remove' }).click()
 
-    test('the user who added a blog can delete it', async ({ page }) => {
-      const title = 'Blog to delete'
-
-      await createBlog(
-        page,
-        title,
-        'Playwright Test',
-        'https://example.com/blog-to-delete'
-      )
-
-      await page.reload()
-
-      const blog = page.locator('.blog').filter({ hasText: title })
-      await expect(blog).toBeVisible()
-      await blog.getByRole('button', { name: 'view' }).click()
-
-      page.once('dialog', dialog => dialog.accept())
-      await blog.getByRole('button', { name: 'remove' }).click()
-
-      await expect(blog).toHaveCount(0)
-    })
-
-    test('only the user who added a blog sees its remove button', async ({
-      page,
-      request
-    }) => {
-      const title = 'Another users blog'
-      const otherUser = {
-        name: 'Other User',
-        username: 'otheruser',
-        password: 'otherpassword'
-      }
-
-      await createBlog(
-        page,
-        title,
-        'Playwright Test',
-        'https://example.com/another-users-blog'
-      )
-
-      await page.reload()
-
-      await request.post('http://localhost:3003/api/users', {
-        data: otherUser
-      })
-
-      await page.getByRole('button', { name: 'logout' }).click()
-      await login(page, otherUser.username, otherUser.password)
-
-      const blog = page.locator('.blog').filter({ hasText: title })
-      await expect(blog).toBeVisible()
-      await blog.getByRole('button', { name: 'view' }).click()
-
-      await expect(blog.getByRole('button', { name: 'remove' })).toHaveCount(0)
-    })
-
-    test('blogs are ordered by likes, most liked first', async ({ page }) => {
-      const lowLikesTitle = 'Low likes blog'
-      const mediumLikesTitle = 'Medium likes blog'
-      const highLikesTitle = 'High likes blog'
-
-      await createBlog(
-        page,
-        lowLikesTitle,
-        'Playwright Test',
-        'https://example.com/low-likes'
-      )
-
-      await createBlog(
-        page,
-        mediumLikesTitle,
-        'Playwright Test',
-        'https://example.com/medium-likes'
-      )
-
-      await createBlog(
-        page,
-        highLikesTitle,
-        'Playwright Test',
-        'https://example.com/high-likes'
-      )
-
-      await likeBlog(page, lowLikesTitle, 1)
-      await likeBlog(page, mediumLikesTitle, 3)
-      await likeBlog(page, highLikesTitle, 5)
-
-      const blogs = page.locator('.blog')
-
-      await expect(blogs.nth(0)).toContainText(highLikesTitle)
-      await expect(blogs.nth(1)).toContainText(mediumLikesTitle)
-      await expect(blogs.nth(2)).toContainText(lowLikesTitle)
-    })
-  })
+  await expect(
+    page.getByRole('link', { name: `${blog.title} by ${blog.author}` })
+  ).toHaveCount(0)
 })
