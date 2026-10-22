@@ -12,7 +12,7 @@ const Blog = ({ blog, onLike, onDelete, canDelete }) => {
   }
 
   return (
-    <div style={blogStyle}>
+    <div className="blog" style={blogStyle}>
       <div>
         {blog.title} {blog.author}
         <button
