@@ -71,7 +71,7 @@ const App = () => {
       setUsername('')
       setPassword('')
       setNotification(null)
-    } catch (error) {
+    } catch {
       setNotification({
         message: 'Wrong username or password',
         type: 'error'
@@ -99,7 +99,7 @@ const App = () => {
       })
 
       return true
-    } catch (error) {
+    } catch {
       setNotification({
         message: 'Could not create blog',
         type: 'error'
@@ -128,7 +128,7 @@ const App = () => {
             : currentBlog
         )
       )
-    } catch (error) {
+    } catch {
       setNotification({
         message: 'Could not like the blog',
         type: 'error'
@@ -156,7 +156,7 @@ const App = () => {
         message: `${blog.title} by ${blog.author} removed`,
         type: 'success'
       })
-    } catch (error) {
+    } catch {
       setNotification({
         message: 'Could not remove blog',
         type: 'error'
