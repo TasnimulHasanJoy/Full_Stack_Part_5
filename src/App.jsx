@@ -74,7 +74,6 @@ const App = () => {
 
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const [showForm, setShowForm] = useState(false)
   const [notification, setNotification] = useState(null)
 
   useEffect(() => {
@@ -134,7 +133,6 @@ const App = () => {
   const handleLogout = () => {
     window.localStorage.removeItem('loggedBlogappUser')
     setUser(null)
-    setShowForm(false)
     setNotification(null)
     navigate('/')
   }
@@ -144,11 +142,11 @@ const App = () => {
       const createdBlog = await blogService.create(newBlog, user.token)
 
       setBlogs(currentBlogs => currentBlogs.concat(createdBlog))
-      setShowForm(false)
       setNotification({
         message: `${createdBlog.title} by ${createdBlog.author} added`,
         type: 'success'
       })
+      navigate('/')
 
       return true
     } catch {
@@ -236,7 +234,11 @@ const App = () => {
           <Link to="/login">login</Link>
         ) : (
           <>
-            <button type="button" onClick={handleLogout}>logout</button>
+            <Link to="/create">new blog</Link>
+            {' '}
+            <button type="button" onClick={handleLogout}>
+              logout
+            </button>
           </>
         )}
       </nav>
@@ -250,28 +252,29 @@ const App = () => {
             <div>
               <h2>blogs</h2>
 
-              {user !== null && (
-                showForm ? (
-                  <BlogForm
-                    createBlog={handleCreateBlog}
-                    onCancel={() => setShowForm(false)}
-                  />
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => setShowForm(true)}
-                  >
-                    create new blog
-                  </button>
-                )
-              )}
-
               <ul>
                 {sortedBlogs.map(blog => (
                   <Blog key={blog.id} blog={blog} />
                 ))}
               </ul>
             </div>
+          }
+        />
+
+        <Route
+          path="/create"
+          element={
+            user === null ? (
+              <Navigate to="/login" replace />
+            ) : (
+              <div>
+                <h2>create new</h2>
+                <BlogForm
+                  createBlog={handleCreateBlog}
+                  onCancel={() => navigate('/')}
+                />
+              </div>
+            )
           }
         />
 
