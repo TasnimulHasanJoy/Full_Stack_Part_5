@@ -173,6 +173,86 @@
   outline-offset: 2px;
 }
 
+.blog-details-card {
+  box-sizing: border-box;
+  margin: 24px auto;
+  padding: 28px 24px;
+  border-radius: 5px;
+  background-color: #fff;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 22%);
+}
+
+.blog-details-title {
+  margin: 0 0 12px;
+  color: #222;
+  font-family: Arial, sans-serif;
+  font-size: 28px;
+}
+
+.blog-details-author {
+  margin: 0 0 14px;
+  color: #666;
+  font-family: Arial, sans-serif;
+  font-size: 18px;
+}
+
+.blog-details-url {
+  display: inline-block;
+  margin-bottom: 10px;
+  color: #1976d2;
+  font-family: Arial, sans-serif;
+  overflow-wrap: anywhere;
+}
+
+.blog-details-added-by {
+  margin: 8px 0 14px;
+  color: #666;
+  font-family: Arial, sans-serif;
+}
+
+.blog-details-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-family: Arial, sans-serif;
+}
+
+.blog-details-likes {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.blog-action-button {
+  padding: 9px 16px;
+  border: 1px solid;
+  border-radius: 5px;
+  background-color: #fff;
+  cursor: pointer;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.like-button {
+  border-color: #1976d2;
+  color: #1976d2;
+}
+
+.like-button:hover {
+  background-color: #eaf3fc;
+}
+
+.remove-button {
+  border-color: #e53935;
+  color: #e53935;
+}
+
+.remove-button:hover {
+  background-color: #fff0f0;
+}
+
 @media (max-width: 600px) {
   .app-shell {
     width: calc(100% - 20px);
@@ -204,5 +284,13 @@
 
   .blog-form {
     width: 100%;
+  }
+
+  .blog-details-card {
+    padding: 22px 16px;
+  }
+
+  .blog-details-title {
+    font-size: 24px;
   }
 }

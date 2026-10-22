@@ -15,32 +15,45 @@ const BlogView = ({ blogs, blogsLoaded, user, onLike, onDelete }) => {
   const canDelete = blog.user?.username === user?.username
 
   return (
-    <div className="blog-details">
-      <h3>
-        {blog.author}: {blog.title}
-      </h3>
+    <article className="blog-details-card">
+      <h2 className="blog-details-title">{blog.title}</h2>
 
-      <div>
-        <a href={blog.url}>{blog.url}</a>
-      </div>
+      <p className="blog-details-author">by {blog.author}</p>
 
-      <div>
-        likes {blog.likes}{' '}
+      <a className="blog-details-url" href={blog.url}>
+        {blog.url}
+      </a>
+
+      <p className="blog-details-added-by">
+        Added by {blog.user?.name}
+      </p>
+
+      <div className="blog-details-actions">
+        <span className="blog-details-likes">
+          likes {blog.likes}
+        </span>
+
         {user !== null && (
-          <button type="button" onClick={() => onLike(blog)}>
+          <button
+            className="blog-action-button like-button"
+            type="button"
+            onClick={() => onLike(blog)}
+          >
             like
           </button>
         )}
+
+        {canDelete && (
+          <button
+            className="blog-action-button remove-button"
+            type="button"
+            onClick={() => onDelete(blog)}
+          >
+            remove
+          </button>
+        )}
       </div>
-
-      <div>Added by {blog.user?.name}</div>
-
-      {canDelete && (
-        <button type="button" onClick={() => onDelete(blog)}>
-          remove
-        </button>
-      )}
-    </div>
+    </article>
   )
 }
 
