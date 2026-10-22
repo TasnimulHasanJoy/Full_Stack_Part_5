@@ -28,6 +28,18 @@ const login = async (page, username, password) => {
   await page.getByRole('button', { name: 'login' }).click()
 }
 
+const likeBlog = async (page, title, count) => {
+  const blog = page.locator('.blog').filter({ hasText: title })
+
+  await blog.getByRole('button', { name: 'view' }).click()
+  await expect(blog).toContainText('likes 0')
+
+  for (let i = 0; i < count; i++) {
+    await blog.getByRole('button', { name: 'like' }).click()
+    await expect(blog).toContainText(`likes ${i + 1}`)
+  }
+}
+
 describe('Blog app', () => {
   beforeEach(async ({ page, request }) => {
     await request.post('http://localhost:3003/api/testing/reset')
@@ -160,6 +172,43 @@ describe('Blog app', () => {
       await blog.getByRole('button', { name: 'view' }).click()
 
       await expect(blog.getByRole('button', { name: 'remove' })).toHaveCount(0)
+    })
+
+    test('blogs are ordered by likes, most liked first', async ({ page }) => {
+      const lowLikesTitle = 'Low likes blog'
+      const mediumLikesTitle = 'Medium likes blog'
+      const highLikesTitle = 'High likes blog'
+
+      await createBlog(
+        page,
+        lowLikesTitle,
+        'Playwright Test',
+        'https://example.com/low-likes'
+      )
+
+      await createBlog(
+        page,
+        mediumLikesTitle,
+        'Playwright Test',
+        'https://example.com/medium-likes'
+      )
+
+      await createBlog(
+        page,
+        highLikesTitle,
+        'Playwright Test',
+        'https://example.com/high-likes'
+      )
+
+      await likeBlog(page, lowLikesTitle, 1)
+      await likeBlog(page, mediumLikesTitle, 3)
+      await likeBlog(page, highLikesTitle, 5)
+
+      const blogs = page.locator('.blog')
+
+      await expect(blogs.nth(0)).toContainText(highLikesTitle)
+      await expect(blogs.nth(1)).toContainText(mediumLikesTitle)
+      await expect(blogs.nth(2)).toContainText(lowLikesTitle)
     })
   })
 })
