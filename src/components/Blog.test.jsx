@@ -2,81 +2,47 @@ import {
   cleanup,
   fireEvent,
   render,
-  screen
+  screen,
+  waitFor
 } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import Blog from './Blog'
+import BlogForm from './BlogForm'
 
 afterEach(() => {
   cleanup()
 })
 
-describe('Blog component', () => {
-  const blog = {
-    title: 'Testing React components',
-    author: 'Test Author',
-    url: 'https://example.com/blog',
-    likes: 7,
-    user: {
-      name: 'Test User',
-      username: 'testuser'
-    }
-  }
+describe('BlogForm component', () => {
+  it('calls the event handler with the right details when a new blog is created', async () => {
+    const createBlog = vi.fn().mockResolvedValue(true)
 
-  it('renders title and author, but not URL or likes by default', () => {
     const { container } = render(
-      <Blog
-        blog={blog}
-        onLike={() => {}}
-        onDelete={() => {}}
-        canDelete={false}
+      <BlogForm
+        createBlog={createBlog}
+        onCancel={() => {}}
       />
     )
 
-    const blogElement = container.querySelector('.blog')
-    const displayedText = blogElement.textContent
+    const inputs = container.querySelectorAll('input')
 
-    expect(displayedText).toContain(blog.title)
-    expect(displayedText).toContain(blog.author)
-    expect(displayedText).not.toContain(blog.url)
-    expect(displayedText).not.toContain(`likes ${blog.likes}`)
-  })
+    fireEvent.change(inputs[0], {
+      target: { value: 'Testing React forms' }
+    })
+    fireEvent.change(inputs[1], {
+      target: { value: 'Test Author' }
+    })
+    fireEvent.change(inputs[2], {
+      target: { value: 'https://example.com/blog' }
+    })
 
-  it('shows URL and likes when the view button is clicked', () => {
-    render(
-      <Blog
-        blog={blog}
-        onLike={() => {}}
-        onDelete={() => {}}
-        canDelete={false}
-      />
-    )
+    fireEvent.click(screen.getByRole('button', { name: 'create' }))
 
-    const viewButton = screen.getByRole('button', { name: 'view' })
-    fireEvent.click(viewButton)
-
-    expect(screen.getByText(blog.url)).toBeTruthy()
-    expect(screen.getByText(`likes ${blog.likes}`)).toBeTruthy()
-  })
-
-  it('calls the event handler twice when the like button is clicked twice', () => {
-    const onLike = vi.fn()
-
-    render(
-      <Blog
-        blog={blog}
-        onLike={onLike}
-        onDelete={() => {}}
-        canDelete={false}
-      />
-    )
-
-    fireEvent.click(screen.getByRole('button', { name: 'view' }))
-
-    const likeButton = screen.getByRole('button', { name: 'like' })
-    fireEvent.click(likeButton)
-    fireEvent.click(likeButton)
-
-    expect(onLike).toHaveBeenCalledTimes(2)
+    await waitFor(() => {
+      expect(createBlog).toHaveBeenCalledWith({
+        title: 'Testing React forms',
+        author: 'Test Author',
+        url: 'https://example.com/blog'
+      })
+    })
   })
 })
