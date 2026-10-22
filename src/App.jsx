@@ -17,16 +17,14 @@ const Notification = ({ notification }) => {
     return null
   }
 
-  const style = {
-    color: notification.type === 'error' ? 'red' : 'green',
-    backgroundColor: '#ddd',
-    border: `3px solid ${notification.type === 'error' ? 'red' : 'green'}`,
-    borderRadius: '5px',
-    padding: '10px',
-    marginBottom: '10px'
-  }
-
-  return <div style={style}>{notification.message}</div>
+  return (
+    <div className={`notification notification-${notification.type}`}>
+      <span className="notification-icon" aria-hidden="true">
+        {notification.type === 'error' ? '!' : '✓'}
+      </span>
+      <span>{notification.message}</span>
+    </div>
+  )
 }
 
 const LoginForm = ({
@@ -241,91 +239,103 @@ const App = () => {
   )
 
   return (
-    <div className="app">
-      <nav className="navigation">
-        <Link to="/">blogs</Link>
-        {' '}
+    <div className="app-shell">
+      <header className="app-header">
+        <nav className="navigation">
+          <Link className="navigation-brand" to="/">
+            Blog App
+          </Link>
 
-        {user === null ? (
-          <Link to="/login">login</Link>
-        ) : (
-          <>
-            <Link to="/create">new blog</Link>
-            {' '}
-            <button type="button" onClick={handleLogout}>
-              logout
-            </button>
-          </>
-        )}
-      </nav>
+          <div className="navigation-links">
+            <Link to="/">blogs</Link>
 
-      <Notification notification={notification} />
-
-      <Routes>
-        <Route
-          path="/"
-          element={
-            <div>
-              <h2>blogs</h2>
-
-              <ul>
-                {sortedBlogs.map(blog => (
-                  <Blog key={blog.id} blog={blog} />
-                ))}
-              </ul>
-            </div>
-          }
-        />
-
-        <Route
-          path="/create"
-          element={
-            user === null ? (
-              <Navigate to="/login" replace />
+            {user === null ? (
+              <Link to="/login">login</Link>
             ) : (
-              <section className="form-container create-container">
-                <h2>create new</h2>
-                <BlogForm
-                  createBlog={handleCreateBlog}
-                  onCancel={() => navigate('/')}
+              <>
+                <Link to="/create">new blog</Link>
+                <button
+                  className="navigation-button"
+                  type="button"
+                  onClick={handleLogout}
+                >
+                  logout
+                </button>
+              </>
+            )}
+          </div>
+        </nav>
+      </header>
+
+      <main className="app-main">
+        <Notification notification={notification} />
+
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <div>
+                <h2>blogs</h2>
+
+                <ul>
+                  {sortedBlogs.map(blog => (
+                    <Blog key={blog.id} blog={blog} />
+                  ))}
+                </ul>
+              </div>
+            }
+          />
+
+          <Route
+            path="/create"
+            element={
+              user === null ? (
+                <Navigate to="/login" replace />
+              ) : (
+                <section className="form-container create-container">
+                  <h2>create new</h2>
+                  <BlogForm
+                    createBlog={handleCreateBlog}
+                    onCancel={() => navigate('/')}
+                  />
+                </section>
+              )
+            }
+          />
+
+          <Route
+            path="/login"
+            element={
+              user !== null ? (
+                <Navigate to="/" replace />
+              ) : (
+                <LoginForm
+                  handleLogin={handleLogin}
+                  username={username}
+                  setUsername={setUsername}
+                  password={password}
+                  setPassword={setPassword}
                 />
-              </section>
-            )
-          }
-        />
+              )
+            }
+          />
 
-        <Route
-          path="/login"
-          element={
-            user !== null ? (
-              <Navigate to="/" replace />
-            ) : (
-              <LoginForm
-                handleLogin={handleLogin}
-                username={username}
-                setUsername={setUsername}
-                password={password}
-                setPassword={setPassword}
+          <Route
+            path="/blogs/:id"
+            element={
+              <BlogView
+                blogs={blogs}
+                blogsLoaded={blogsLoaded}
+                user={user}
+                onLike={handleLike}
+                onDelete={handleDelete}
               />
-            )
-          }
-        />
+            }
+          />
 
-        <Route
-          path="/blogs/:id"
-          element={
-            <BlogView
-              blogs={blogs}
-              blogsLoaded={blogsLoaded}
-              user={user}
-              onLike={handleLike}
-              onDelete={handleDelete}
-            />
-          }
-        />
-
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </main>
     </div>
   )
 }

@@ -1,3 +1,95 @@
+.app-shell {
+  box-sizing: border-box;
+  width: min(930px, calc(100% - 32px));
+  margin: 20px auto;
+}
+
+.app-header {
+  margin-bottom: 22px;
+}
+
+.navigation {
+  box-sizing: border-box;
+  min-height: 88px;
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  background-color: #1976d2;
+  color: #fff;
+  box-shadow: 0 3px 8px rgb(0 0 0 / 25%);
+}
+
+.navigation a,
+.navigation-button {
+  color: #fff;
+  font-family: Arial, sans-serif;
+  font-size: 16px;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.navigation a:hover,
+.navigation-button:hover {
+  color: #e3f2fd;
+}
+
+.navigation-brand {
+  font-size: 24px !important;
+  font-weight: 500;
+  text-transform: none !important;
+}
+
+.navigation-links {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.navigation-button {
+  padding: 8px 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.app-main {
+  width: 100%;
+}
+
+.notification {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0 0 22px;
+  padding: 18px 22px;
+  border-radius: 5px;
+  font-family: Arial, sans-serif;
+  font-size: 16px;
+}
+
+.notification-success {
+  color: #285b37;
+  background-color: #eaf5ec;
+}
+
+.notification-error {
+  color: #8a2525;
+  background-color: #fdecec;
+}
+
+.notification-icon {
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  font-weight: bold;
+}
+
 .form-container {
   margin: 24px auto;
 }
@@ -6,10 +98,7 @@
   margin-bottom: 28px;
 }
 
-.login-container {
-  max-width: 900px;
-}
-
+.login-container,
 .create-container {
   max-width: 900px;
 }
@@ -23,7 +112,6 @@
 
 .login-form {
   width: 255px;
-  margin-left: 0;
 }
 
 .blog-form {
@@ -40,7 +128,7 @@
 
 .login-input {
   width: 100%;
-  border: none;
+  border: 0;
   border-bottom: 2px solid #bdbdbd;
   border-radius: 0;
   background: transparent;
@@ -63,7 +151,8 @@
 }
 
 .styled-button {
-  border: none;
+  padding: 12px 20px;
+  border: 0;
   border-radius: 4px;
   background-color: #1976d2;
   color: #fff;
@@ -71,7 +160,6 @@
   font: inherit;
   font-size: 14px;
   font-weight: 600;
-  padding: 12px 20px;
   text-transform: uppercase;
   box-shadow: 0 2px 4px rgb(0 0 0 / 25%);
 }
@@ -86,8 +174,32 @@
 }
 
 @media (max-width: 600px) {
+  .app-shell {
+    width: calc(100% - 20px);
+    margin: 10px auto;
+  }
+
+  .navigation {
+    min-height: 72px;
+    padding: 0 16px;
+    gap: 12px;
+  }
+
+  .navigation-links {
+    gap: 12px;
+  }
+
+  .navigation a,
+  .navigation-button {
+    font-size: 13px;
+  }
+
+  .navigation-brand {
+    font-size: 19px !important;
+  }
+
   .form-container {
-    margin: 20px 12px;
+    margin: 20px 8px;
   }
 
   .blog-form {
