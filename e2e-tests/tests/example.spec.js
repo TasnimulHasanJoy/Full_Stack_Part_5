@@ -105,5 +105,30 @@ describe('Blog app', () => {
       await blog.getByRole('button', { name: 'like' }).click()
       await expect(blog).toContainText('likes 1')
     })
+
+    test('the user who added a blog can delete it', async ({ page }) => {
+      const title = 'Blog to delete'
+      const author = 'Playwright Test'
+      const url = 'https://example.com/blog-to-delete'
+
+      await page.getByRole('button', { name: 'create new blog' }).click()
+
+      const inputs = page.locator('form input')
+      await inputs.nth(0).fill(title)
+      await inputs.nth(1).fill(author)
+      await inputs.nth(2).fill(url)
+
+      await page.getByRole('button', { name: 'create', exact: true }).click()
+
+      await page.reload()
+
+      const blog = page.locator('.blog').filter({ hasText: title })
+      await blog.getByRole('button', { name: 'view' }).click()
+
+      page.once('dialog', dialog => dialog.accept())
+      await blog.getByRole('button', { name: 'remove' }).click()
+
+      await expect(blog).toHaveCount(0)
+    })
   })
 })
