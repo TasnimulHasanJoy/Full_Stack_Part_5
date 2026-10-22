@@ -4,7 +4,7 @@ import {
   render,
   screen
 } from '@testing-library/react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import Blog from './Blog'
 
 afterEach(() => {
@@ -57,5 +57,26 @@ describe('Blog component', () => {
 
     expect(screen.getByText(blog.url)).toBeTruthy()
     expect(screen.getByText(`likes ${blog.likes}`)).toBeTruthy()
+  })
+
+  it('calls the event handler twice when the like button is clicked twice', () => {
+    const onLike = vi.fn()
+
+    render(
+      <Blog
+        blog={blog}
+        onLike={onLike}
+        onDelete={() => {}}
+        canDelete={false}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'view' }))
+
+    const likeButton = screen.getByRole('button', { name: 'like' })
+    fireEvent.click(likeButton)
+    fireEvent.click(likeButton)
+
+    expect(onLike).toHaveBeenCalledTimes(2)
   })
 })
